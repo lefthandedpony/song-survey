@@ -1,12 +1,15 @@
-import streamlit as st
-import pandas as pd
+import datetime
+
 import gspread
+import pandas as pd
+import streamlit as st
 from google.oauth2.service_account import Credentials
+
 
 def connect_to_gsheet():
     scopes = [
         "https://www.googleapis.com/auth/spreadsheets",
-        "https://www.googleapis.com/auth/drive"
+        "https://www.googleapis.com/auth/drive",
     ]
 
     creds_dict = st.secrets["gcp_service_account"]
@@ -16,11 +19,16 @@ def connect_to_gsheet():
     sheet = client.open("song_similarity_results").sheet1
     return sheet
 
+
 st.set_page_config(page_title="Vergleich von Songtexten", layout="wide")
+
 
 @st.cache_data
 def load_pairs():
-    return pd.read_csv("songpairs.csv")
+    df = pd.read_csv("songpairs.csv")
+    df.columns = df.columns.str.strip()
+    return df
+
 
 pairs = load_pairs()
 
@@ -44,9 +52,9 @@ music_interest = st.selectbox(
         "Selten",
         "Manchmal",
         "Oft",
-        "Sehr oft"
+        "Sehr oft",
     ],
-    index=0
+    index=0,
 )
 
 language_confidence = st.selectbox(
@@ -57,9 +65,9 @@ language_confidence = st.selectbox(
         "Eher unsicher",
         "Mittel",
         "Eher sicher",
-        "Sehr sicher"
+        "Sehr sicher",
     ],
-    index=0
+    index=0,
 )
 
 st.divider()
@@ -74,89 +82,97 @@ for _, row in pairs.iterrows():
 
     st.markdown(f"## Paar {pair_id}")
 
-    col1, col2 = st.columns(2)
-    with col1:
+    text_col1, text_col2 = st.columns(2)
+    with text_col1:
         st.subheader("Text A")
         st.write(row["textA"])
-    with col2:
+    with text_col2:
         st.subheader("Text B")
         st.write(row["textB"])
 
-    # -------- THEMA --------
-    col1, col2 = st.columns([8, 1], vertical_alignment="center")
+    st.caption("KA = keine Angabe")
 
-    with col1:
+    # -------- THEMA --------
+    label_col, checkbox_col = st.columns([8, 1], vertical_alignment="center")
+    with label_col:
         st.markdown("**Thematische Ähnlichkeit**")
-    with col2:
+    with checkbox_col:
         no_thema = st.checkbox("KA", key=f"{pair_id}_thema_na")
 
     thema = st.slider(
         f"Thematische Ähnlichkeit – Paar {pair_id}",
-        1, 5, 3,
+        min_value=1,
+        max_value=5,
+        value=3,
         disabled=no_thema,
         key=f"{pair_id}_thema",
-        label_visibility="collapsed"
+        label_visibility="collapsed",
     )
     thema_value = 0 if no_thema else thema
 
     # -------- EMOTION --------
-    col1, col2 = st.columns([8, 1], vertical_alignment="center")
-
-    with col1:
+    label_col, checkbox_col = st.columns([8, 1], vertical_alignment="center")
+    with label_col:
         st.markdown("**Emotionale Ähnlichkeit**")
-    with col2:
+    with checkbox_col:
         no_emotion = st.checkbox("KA", key=f"{pair_id}_emotion_na")
 
     emotion = st.slider(
         f"Emotionale Ähnlichkeit – Paar {pair_id}",
-        1, 5, 3,
+        min_value=1,
+        max_value=5,
+        value=3,
         disabled=no_emotion,
         key=f"{pair_id}_emotion",
-        label_visibility="collapsed"
+        label_visibility="collapsed",
     )
     emotion_value = 0 if no_emotion else emotion
 
-    # -------- METAPHER --------
-    col1, col2 = st.columns([8, 1], vertical_alignment="center")
-
-    with col1:
+    # -------- METAPHOR --------
+    label_col, checkbox_col = st.columns([8, 1], vertical_alignment="center")
+    with label_col:
         st.markdown("**Bildsprache / Metaphern**")
-    with col2:
+    with checkbox_col:
         no_metaphor = st.checkbox("KA", key=f"{pair_id}_metaphor_na")
 
     metaphor = st.slider(
         f"Bildsprache / Metaphern – Paar {pair_id}",
-        1, 5, 3,
+        min_value=1,
+        max_value=5,
+        value=3,
         disabled=no_metaphor,
         key=f"{pair_id}_metaphor",
-        label_visibility="collapsed"
+        label_visibility="collapsed",
     )
     metaphor_value = 0 if no_metaphor else metaphor
 
     # -------- GESAMT --------
-    col1, col2 = st.columns([8, 1], vertical_alignment="center")
-
-    with col1:
+    label_col, checkbox_col = st.columns([8, 1], vertical_alignment="center")
+    with label_col:
         st.markdown("**Gesamteindruck**")
-    with col2:
+    with checkbox_col:
         no_overall = st.checkbox("KA", key=f"{pair_id}_overall_na")
 
     overall = st.slider(
         f"Gesamteindruck – Paar {pair_id}",
-        1, 5, 3,
+        min_value=1,
+        max_value=5,
+        value=3,
         disabled=no_overall,
         key=f"{pair_id}_overall",
-        label_visibility="collapsed"
+        label_visibility="collapsed",
     )
     overall_value = 0 if no_overall else overall
 
-    responses.append({
-        "pairid": pair_id,
-        "thema": thema_value,
-        "emotion": emotion_value,
-        "metaphor": metaphor_value,
-        "overall": overall_value,
-    })
+    responses.append(
+        {
+            "pairid": pair_id,
+            "thema": thema_value,
+            "emotion": emotion_value,
+            "metaphor": metaphor_value,
+            "overall": overall_value,
+        }
+    )
 
     st.divider()
 
@@ -168,17 +184,16 @@ st.header("Abschluss")
 similar_songs_free_text = st.text_area(
     "Kennst du Songs, die du textlich bzw. semantisch ähnlich findest? "
     "Dann trage sie hier gerne ein. (optional)",
-    height=150
+    height=150,
 )
 
 # --------------------------------------------------
-# Ergebnisse zusammenstellen
+# Vorschau der Antworten
 # --------------------------------------------------
-if st.button("Antworten zusammenstellen"):
-    result_rows = []
-
-    for r in responses:
-        result_rows.append({
+preview_rows = []
+for r in responses:
+    preview_rows.append(
+        {
             "music_interest": music_interest,
             "language_confidence": language_confidence,
             "pairid": r["pairid"],
@@ -186,23 +201,22 @@ if st.button("Antworten zusammenstellen"):
             "emotion": r["emotion"],
             "metaphor": r["metaphor"],
             "overall": r["overall"],
-            "similar_songs_free_text": similar_songs_free_text
-        })
+            "similar_songs_free_text": similar_songs_free_text,
+        }
+    )
 
-    result_df = pd.DataFrame(result_rows)
+result_df = pd.DataFrame(preview_rows)
 
-    st.success("Die Antworten wurden zusammengestellt.")
-    st.dataframe(result_df)
+with st.expander("Vorschau der Antworten anzeigen"):
+    st.dataframe(result_df, use_container_width=True)
 
-    csv = result_df.to_csv(index=False).encode("utf-8")
-   if st.button("Antworten absenden"):
+# --------------------------------------------------
+# Antworten absenden
+# --------------------------------------------------
+if st.button("Antworten absenden"):
     try:
         sheet = connect_to_gsheet()
-        import datetime
-
         timestamp = datetime.datetime.now().isoformat()
-
-        result_rows = []
 
         for r in responses:
             row_data = [
@@ -214,13 +228,11 @@ if st.button("Antworten zusammenstellen"):
                 r["emotion"],
                 r["metaphor"],
                 r["overall"],
-                similar_songs_free_text
+                similar_songs_free_text,
             ]
-
             sheet.append_row(row_data)
-            result_rows.append(row_data)
 
         st.success("Danke! Deine Antworten wurden gespeichert.")
 
     except Exception as e:
-        st.error(f"Fehler: {e}")
+        st.error(f"Fehler beim Speichern: {e}")
