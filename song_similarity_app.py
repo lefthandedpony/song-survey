@@ -195,24 +195,32 @@ if st.button("Antworten zusammenstellen"):
     st.dataframe(result_df)
 
     csv = result_df.to_csv(index=False).encode("utf-8")
-    if st.button("Antworten absenden"):
-        try:
-            sheet = connect_to_gsheet()
-            import datetime
+   if st.button("Antworten absenden"):
+    try:
+        sheet = connect_to_gsheet()
+        import datetime
 
-            timestamp = datetime.datetime.now().isoformat()
+        timestamp = datetime.datetime.now().isoformat()
 
-            for r in responses:
-                sheet.append_row([
-                    timestamp,
-                    r["pairid"],
-                    r["thema"],
-                    r["emotion"],
-                    r["metaphor"],
-                    r["overall"],
-                    similar_songs_free_text
-                ])
+        result_rows = []
 
-            st.success("Danke! Deine Antworten wurden gespeichert.")
-        except Exception as e:
-            st.error(f"Fehler: {e}")
+        for r in responses:
+            row_data = [
+                timestamp,
+                music_interest,
+                language_confidence,
+                r["pairid"],
+                r["thema"],
+                r["emotion"],
+                r["metaphor"],
+                r["overall"],
+                similar_songs_free_text
+            ]
+
+            sheet.append_row(row_data)
+            result_rows.append(row_data)
+
+        st.success("Danke! Deine Antworten wurden gespeichert.")
+
+    except Exception as e:
+        st.error(f"Fehler: {e}")
