@@ -249,26 +249,34 @@ with st.expander("Vorschau der Antworten anzeigen"):
 # --------------------------------------------------
 # Antworten absenden
 # --------------------------------------------------
-if st.button("Antworten absenden"):
-    try:
-        sheet = connect_to_gsheet()
-        timestamp = datetime.datetime.now().isoformat()
+if "submitted" not in st.session_state:
+    st.session_state.submitted = False
 
-        for r in responses:
-            row_data = [
-                timestamp,
-                music_interest,
-                language_confidence,
-                r["pairid"],
-                r["thema"],
-                r["emotion"],
-                r["metaphor"],
-                r["overall"],
-                similar_songs_free_text,
-            ]
-            sheet.append_row(row_data)
+if st.button("Antworten absenden", disabled=st.session_state.submitted):
+    st.session_state.submitted = True
 
-        st.success("Danke! Deine Antworten wurden gespeichert.")
+    with st.spinner("Antworten werden gespeichert..."):
+        try:
+            sheet = connect_to_gsheet()
+            import datetime
 
-    except Exception as e:
-        st.error(f"Fehler beim Speichern: {e}")
+            timestamp = datetime.datetime.now().isoformat()
+
+            for r in responses:
+                sheet.append_row([
+                    timestamp,
+                    music_interest,
+                    language_confidence,
+                    r["pairid"],
+                    r["thema"],
+                    r["emotion"],
+                    r["metaphor"],
+                    r["overall"],
+                    similar_songs_free_text
+                ])
+
+            st.success("Danke! Ihre Antworten wurden gespeichert.")
+
+        except Exception as e:
+            st.error(f"Fehler beim Speichern: {e}")
+            st.session_state.submitted = False
