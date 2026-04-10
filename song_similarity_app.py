@@ -85,10 +85,10 @@ for _, row in pairs.iterrows():
     text_col1, text_col2 = st.columns(2)
     with text_col1:
         st.subheader("Text A")
-        st.write(row["textA"])
+        st.text(row["textA"])
     with text_col2:
         st.subheader("Text B")
-        st.write(row["textB"])
+        st.text(row["textB"])
 
     st.caption("KA = keine Angabe")
 
