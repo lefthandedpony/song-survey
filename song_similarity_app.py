@@ -26,7 +26,7 @@ st.set_page_config(page_title="Vergleich von Songtexten", layout="wide")
 @st.cache_data
 def load_pairs():
     df = pd.read_csv("songpairs.csv")
-    df.columns = df.columns.str.strip()
+    # df.columns = df.columns.str.strip()
     return df
 
 
