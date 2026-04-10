@@ -38,6 +38,42 @@ st.write(
     "Bitte bewerte nur die inhaltliche bzw. semantische Ähnlichkeit der Texte. "
     "Melodie, Genre oder Bekanntheit der Songs sollen keine Rolle spielen."
 )
+st.header("Hinweise zur Bewertung")
+
+st.markdown("""
+Bitte bewerten Sie die folgenden Textpaare ausschließlich hinsichtlich ihrer **inhaltlichen (semantischen) Ähnlichkeit**.  
+Melodie, Genre oder Bekanntheit der Songs sollen **keine Rolle spielen**.
+
+### Bedeutung der Bewertungsskala:
+- **1 = gar nicht ähnlich**
+- **3 = teilweise ähnlich**
+- **5 = sehr ähnlich**
+
+Zwischenwerte können entsprechend abgestuft verwendet werden.
+
+### Erklärung der Kriterien:
+
+**Thematische Ähnlichkeit**  
+→ Bezieht sich auf das grundlegende Thema des Textes  
+(z. B. Liebe, Trennung, Einsamkeit, Selbstfindung)
+
+**Emotionale Ähnlichkeit**  
+→ Bezieht sich auf die vermittelte Stimmung oder Emotion  
+(z. B. traurig, hoffnungsvoll, wütend)
+
+**Bildsprache / Metaphern**  
+→ Bezieht sich auf sprachliche Bilder oder Vergleiche  
+(z. B. „gebrochenes Herz“, „im Regen stehen“)  
+→ Falls keine oder kaum Metaphern vorhanden sind, können Sie **„Keine Angabe (KA)“** wählen
+
+**Gesamteindruck**  
+→ Subjektive Einschätzung, ob sich die Textpassagen insgesamt ähnlich anfühlen  
+→ Also: *„Wirken die Texte wie die gleiche Aussage – nur anders formuliert?“*
+
+---
+
+Sie können bei einzelnen Kriterien **„KA“ (keine Angabe)** wählen, wenn Sie sich unsicher sind oder das Kriterium nicht sinnvoll bewerten können.
+""")
 
 # --------------------------------------------------
 # Optionale Fragen ganz oben
