@@ -32,7 +32,7 @@ def load_pairs():
 
 pairs = load_pairs()
 
-st.title("Vergleich von Songtexten – Ähnlichkeitsbewertung Dauer 10-20 Minuten")
+st.title("Umfrage: Vergleich von Songtexten – Ähnlichkeitsbewertung Dauer 10-20 Minuten")
 
 st.write(
     "Erstellt von Steve Tacke. Bitte bewerte nur die inhaltliche bzw. semantische Ähnlichkeit der Texte. "
