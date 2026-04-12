@@ -6,6 +6,9 @@ import streamlit as st
 from google.oauth2.service_account import Credentials
 
 
+# -------------------------------
+# Google Sheets Verbindung
+# -------------------------------
 def connect_to_gsheet():
     scopes = [
         "https://www.googleapis.com/auth/spreadsheets",
@@ -20,23 +23,35 @@ def connect_to_gsheet():
     return sheet
 
 
-st.set_page_config(page_title="Vergleich von Songtexten", layout="wide")
+# -------------------------------
+# State für Button
+# -------------------------------
+if "submitted" not in st.session_state:
+    st.session_state.submitted = False
+
+
+# -------------------------------
+# Config
+# -------------------------------
+st.set_page_config(
+    page_title="Umfrage: Vergleich von Songtexten",
+    layout="wide"
+)
 
 
 @st.cache_data
 def load_pairs():
     df = pd.read_csv("songpairs.csv")
-    # df.columns = df.columns.str.strip()
+    df.columns = df.columns.str.strip()
     return df
 
 
 pairs = load_pairs()
 
-st.title("Umfrage: Vergleich von Songtexten – Ähnlichkeitsbewertung Dauer 10-20 Minuten")
+st.title("Umfrage: Vergleich von Songtexten – Ähnlichkeitsbewertung")
+st.write("**Geschätzte Dauer: 10–20 Minuten**")
+st.write("Erstellt von Steve Tacke.")
 
-st.write(
-    "Erstellt von Steve Tacke."
-)
 st.header("Hinweise zur Bewertung")
 
 st.markdown("""
@@ -45,10 +60,11 @@ Melodie, Genre oder Bekanntheit der Songs sollen **keine Rolle spielen**.
 
 ### Bedeutung der Bewertungsskala:
 - **1 = gar nicht ähnlich**
+- **2 = eher unähnlich**
 - **3 = teilweise ähnlich**
+- **4 = eher ähnlich**
 - **5 = sehr ähnlich**
-
-Zwischenwerte können entsprechend abgestuft verwendet werden.
+- **KA = keine Angabe**
 
 ### Erklärung der Kriterien:
 
@@ -69,47 +85,31 @@ Zwischenwerte können entsprechend abgestuft verwendet werden.
 → Subjektive Einschätzung, ob sich die Textpassagen insgesamt ähnlich anfühlen  
 → Also: *„Wirken die Texte wie die gleiche Aussage – nur anders formuliert?“*
 
----
-
 Sie können bei einzelnen Kriterien **„KA“ (keine Angabe)** wählen, wenn Sie sich unsicher sind oder das Kriterium nicht sinnvoll bewerten können.
 """)
 
-# --------------------------------------------------
-# Optionale Fragen ganz oben
-# --------------------------------------------------
+st.divider()
+
+# -------------------------------
+# Optionale Fragen
+# -------------------------------
 st.header("Optionale Angaben")
 
 music_interest = st.selectbox(
-    "Wie häufig achtest du bewusst auf Songtexte? (optional)",
-    options=[
-        "Keine Angabe",
-        "Nie oder fast nie",
-        "Selten",
-        "Manchmal",
-        "Oft",
-        "Sehr oft",
-    ],
-    index=0,
+    "Wie häufig achten Sie bewusst auf Songtexte?",
+    ["Keine Angabe", "Nie", "Selten", "Manchmal", "Oft", "Sehr oft"],
 )
 
 language_confidence = st.selectbox(
-    "Wie sicher fühlst du dich beim Verstehen englischer Songtexte? (optional)",
-    options=[
-        "Keine Angabe",
-        "Sehr unsicher",
-        "Eher unsicher",
-        "Mittel",
-        "Eher sicher",
-        "Sehr sicher",
-    ],
-    index=0,
+    "Wie sicher fühlen Sie sich beim Verstehen englischer Songtexte?",
+    ["Keine Angabe", "Sehr unsicher", "Unsicher", "Mittel", "Sicher", "Sehr sicher"],
 )
 
 st.divider()
 
-# --------------------------------------------------
-# Songpaare bewerten
-# --------------------------------------------------
+# -------------------------------
+# Bewertung
+# -------------------------------
 responses = []
 
 for _, row in pairs.iterrows():
@@ -117,87 +117,55 @@ for _, row in pairs.iterrows():
 
     st.markdown(f"## Paar {pair_id}")
 
-    text_col1, text_col2 = st.columns(2)
-    with text_col1:
+    colA, colB = st.columns(2)
+    with colA:
         st.subheader("Text A")
-        st.text(row["textA"])
-    with text_col2:
+        st.text(row["textA"].replace("\\n", "\n"))
+    with colB:
         st.subheader("Text B")
-        st.text(row["textB"])
+        st.text(row["textB"].replace("\\n", "\n"))
 
-    st.caption("KA = keine Angabe")
+    st.caption("1 = gar nicht ähnlich | 5 = sehr ähnlich | KA = keine Angabe")
 
     # -------- THEMA --------
-    label_col, checkbox_col = st.columns([8, 1], vertical_alignment="center")
-    with label_col:
-        st.markdown("**Thematische Ähnlichkeit**")
-    with checkbox_col:
-        no_thema = st.checkbox("KA", key=f"{pair_id}_thema_na")
-
-    thema = st.slider(
+    thema_raw = st.radio(
         f"Thematische Ähnlichkeit – Paar {pair_id}",
-        min_value=1,
-        max_value=5,
-        value=3,
-        disabled=no_thema,
+        [1, 2, 3, 4, 5, "KA"],
+        index=2,
+        horizontal=True,
         key=f"{pair_id}_thema",
-        label_visibility="collapsed",
     )
-    thema_value = 0 if no_thema else thema
+    thema_value = 0 if thema_raw == "KA" else thema_raw
 
     # -------- EMOTION --------
-    label_col, checkbox_col = st.columns([8, 1], vertical_alignment="center")
-    with label_col:
-        st.markdown("**Emotionale Ähnlichkeit**")
-    with checkbox_col:
-        no_emotion = st.checkbox("KA", key=f"{pair_id}_emotion_na")
-
-    emotion = st.slider(
+    emotion_raw = st.radio(
         f"Emotionale Ähnlichkeit – Paar {pair_id}",
-        min_value=1,
-        max_value=5,
-        value=3,
-        disabled=no_emotion,
+        [1, 2, 3, 4, 5, "KA"],
+        index=2,
+        horizontal=True,
         key=f"{pair_id}_emotion",
-        label_visibility="collapsed",
     )
-    emotion_value = 0 if no_emotion else emotion
+    emotion_value = 0 if emotion_raw == "KA" else emotion_raw
 
     # -------- METAPHOR --------
-    label_col, checkbox_col = st.columns([8, 1], vertical_alignment="center")
-    with label_col:
-        st.markdown("**Bildsprache / Metaphern**")
-    with checkbox_col:
-        no_metaphor = st.checkbox("KA", key=f"{pair_id}_metaphor_na")
-
-    metaphor = st.slider(
+    metaphor_raw = st.radio(
         f"Bildsprache / Metaphern – Paar {pair_id}",
-        min_value=1,
-        max_value=5,
-        value=3,
-        disabled=no_metaphor,
+        [1, 2, 3, 4, 5, "KA"],
+        index=2,
+        horizontal=True,
         key=f"{pair_id}_metaphor",
-        label_visibility="collapsed",
     )
-    metaphor_value = 0 if no_metaphor else metaphor
+    metaphor_value = 0 if metaphor_raw == "KA" else metaphor_raw
 
     # -------- GESAMT --------
-    label_col, checkbox_col = st.columns([8, 1], vertical_alignment="center")
-    with label_col:
-        st.markdown("**Gesamteindruck**")
-    with checkbox_col:
-        no_overall = st.checkbox("KA", key=f"{pair_id}_overall_na")
-
-    overall = st.slider(
+    overall_raw = st.radio(
         f"Gesamteindruck – Paar {pair_id}",
-        min_value=1,
-        max_value=5,
-        value=3,
-        disabled=no_overall,
+        [1, 2, 3, 4, 5, "KA"],
+        index=2,
+        horizontal=True,
         key=f"{pair_id}_overall",
-        label_visibility="collapsed",
     )
-    overall_value = 0 if no_overall else overall
+    overall_value = 0 if overall_raw == "KA" else overall_raw
 
     responses.append(
         {
@@ -211,68 +179,41 @@ for _, row in pairs.iterrows():
 
     st.divider()
 
-# --------------------------------------------------
-# Offene Abschlussfrage
-# --------------------------------------------------
+# -------------------------------
+# Freitext
+# -------------------------------
 st.header("Abschluss")
 
 similar_songs_free_text = st.text_area(
-    "Kennst du Songs, die du textlich bzw. semantisch ähnlich findest? "
-    "Dann trage sie hier gerne ein. (optional)",
+    "Kennen Sie Songs, die Sie als ähnlich empfinden?",
     height=150,
 )
 
-# --------------------------------------------------
-# Vorschau der Antworten
-# --------------------------------------------------
-preview_rows = []
-for r in responses:
-    preview_rows.append(
-        {
-            "music_interest": music_interest,
-            "language_confidence": language_confidence,
-            "pairid": r["pairid"],
-            "thema": r["thema"],
-            "emotion": r["emotion"],
-            "metaphor": r["metaphor"],
-            "overall": r["overall"],
-            "similar_songs_free_text": similar_songs_free_text,
-        }
-    )
-
-result_df = pd.DataFrame(preview_rows)
-
-with st.expander("Vorschau der Antworten anzeigen"):
-    st.dataframe(result_df, use_container_width=True)
-
-# --------------------------------------------------
-# Antworten absenden
-# --------------------------------------------------
-if "submitted" not in st.session_state:
-    st.session_state.submitted = False
-
+# -------------------------------
+# Absenden
+# -------------------------------
 if st.button("Antworten absenden", disabled=st.session_state.submitted):
     st.session_state.submitted = True
 
     with st.spinner("Antworten werden gespeichert..."):
         try:
             sheet = connect_to_gsheet()
-            import datetime
-
             timestamp = datetime.datetime.now().isoformat()
 
             for r in responses:
-                sheet.append_row([
-                    timestamp,
-                    music_interest,
-                    language_confidence,
-                    r["pairid"],
-                    r["thema"],
-                    r["emotion"],
-                    r["metaphor"],
-                    r["overall"],
-                    similar_songs_free_text
-                ])
+                sheet.append_row(
+                    [
+                        timestamp,
+                        music_interest,
+                        language_confidence,
+                        r["pairid"],
+                        r["thema"],
+                        r["emotion"],
+                        r["metaphor"],
+                        r["overall"],
+                        similar_songs_free_text,
+                    ]
+                )
 
             st.success("Danke! Ihre Antworten wurden gespeichert.")
 
