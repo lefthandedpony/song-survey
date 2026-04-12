@@ -35,8 +35,7 @@ pairs = load_pairs()
 st.title("Umfrage: Vergleich von Songtexten – Ähnlichkeitsbewertung Dauer 10-20 Minuten")
 
 st.write(
-    "Erstellt von Steve Tacke. Bitte bewerten Sie nur die inhaltliche bzw. semantische Ähnlichkeit der Texte. "
-    "Melodie, Genre oder Bekanntheit der Songs sollen keine Rolle spielen."
+    "Erstellt von Steve Tacke."
 )
 st.header("Hinweise zur Bewertung")
 
