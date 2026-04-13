@@ -192,18 +192,9 @@ similar_songs_free_text = st.text_area(
 # -------------------------------
 # Absenden
 # -------------------------------
-if "save_in_progress" not in st.session_state:
-    st.session_state.save_in_progress = False
+if st.button("Antworten absenden", disabled=st.session_state.submitted):
+    st.session_state.submitted = True
 
-if "save_done" not in st.session_state:
-    st.session_state.save_done = False
-
-if st.session_state.save_done:
-    st.success("Danke! Ihre Antworten wurden gespeichert.")
-    st.info("Die Umfrage wurde bereits abgeschickt.")
-    st.stop()
-
-if st.session_state.save_in_progress:
     with st.spinner("Antworten werden gespeichert..."):
         try:
             sheet = connect_to_gsheet()
@@ -224,17 +215,10 @@ if st.session_state.save_in_progress:
                     ]
                 )
 
-            st.session_state.save_done = True
-            st.session_state.save_in_progress = False
-            st.rerun()
+            st.success("Danke! Ihre Antworten wurden gespeichert.")
 
         except Exception as e:
-            st.session_state.save_in_progress = False
             st.error(f"Fehler beim Speichern: {e}")
-            st.stop()
-
-if st.button("Antworten absenden"):
-    st.session_state.save_in_progress = True
-    st.rerun()
+            st.session_state.submitted = False
 
    
