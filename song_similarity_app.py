@@ -192,7 +192,13 @@ similar_songs_free_text = st.text_area(
 # -------------------------------
 # Absenden
 # -------------------------------
+if "submitted" not in st.session_state:
+    st.session_state.submitted = False
+
+
 if st.button("Antworten absenden", disabled=st.session_state.submitted):
+
+   
     st.session_state.submitted = True
 
     with st.spinner("Antworten werden gespeichert..."):
