@@ -204,14 +204,6 @@ if st.session_state.save_done:
     st.stop()
 
 if st.session_state.save_in_progress:
-    st.warning("Antworten werden gerade gespeichert. Bitte warten Sie einen Moment.")
-    st.stop()
-
-if st.button("Antworten absenden"):
-    st.session_state.save_in_progress = True
-    st.rerun()
-
-if st.session_state.save_in_progress:
     with st.spinner("Antworten werden gespeichert..."):
         try:
             sheet = connect_to_gsheet()
@@ -239,5 +231,10 @@ if st.session_state.save_in_progress:
         except Exception as e:
             st.session_state.save_in_progress = False
             st.error(f"Fehler beim Speichern: {e}")
+            st.stop()
+
+if st.button("Antworten absenden"):
+    st.session_state.save_in_progress = True
+    st.rerun()
 
    
